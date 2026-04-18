@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SubTrack
+
+A personal subscription management dashboard. Track recurring expenses, visualize monthly spending, and stay on top of every subscription.
+
+> This project is a personal side project built with **vibe coding** — an experimental, intuition-driven approach to development. It is not affiliated with any organization and is intended for personal use and learning.
+
+## Features
+
+- **Authentication** — Email/password sign-up and login via Supabase Auth
+- **Subscription CRUD** — Add, edit, and manage recurring subscriptions
+- **Dashboard** — Monthly/yearly totals, growth rate, and category breakdown at a glance
+- **Donut Chart** — Category spending distribution with a purple/cyan/indigo dark-mode palette
+- **Bar Chart** — 6-month forecast of expected billing based on `next_billing_date`
+- **Responsive** — Works on both desktop and mobile screens
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| UI | React 19, Tailwind CSS 4, shadcn/ui |
+| Charts | Recharts |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth (`@supabase/ssr`) |
+| Forms | React Hook Form + Zod |
+| Icons | Lucide React |
+
+## Prerequisites
+
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone and install
+
+```bash
+git clone <repo-url>
+cd subscription-tracker
+npm install
+```
+
+### 2. Configure environment variables
+
+Create a `.env.local` file in the project root:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+```
+
+You can find these values in your Supabase dashboard under **Settings > API**.
+
+### 3. Set up the database
+
+Run the SQL migration in your Supabase SQL Editor:
+
+```bash
+supabase/001_create_subscriptions.sql
+```
+
+This creates the `subscriptions` table, indexes, RLS policies, and a helper function.
+
+### 4. Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/login` to create an account.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app can be deployed to any platform that supports Next.js App Router (Vercel, Netlify, etc.).
 
-## Learn More
+1. Set the two environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) in your hosting provider's dashboard.
+2. Ensure the Supabase database migration has been applied.
+3. Deploy — no additional build configuration is needed.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/
+    page.tsx              # Main dashboard
+    login/page.tsx        # Login / sign-up
+    auth/callback/        # OAuth callback handler
+    middleware.ts         # Auth session refresh & route protection
+  components/
+    SubscriptionForm.tsx  # Add / edit form
+    SubscriptionList.tsx  # Data table
+    StatsCards.tsx        # Monthly, yearly, growth stats
+    CategoryChart.tsx     # Donut chart
+    ForecastChart.tsx     # 6-month bar chart
+  hooks/
+    useSubscriptionStats.ts  # Derived stats from subscription data
+  lib/
+    supabase/
+      client.ts           # Browser Supabase client
+      server.ts           # Server Supabase client
+      middleware.ts        # Session refresh logic
+    subscriptions.ts      # Types, mock data, utilities
+    validation.ts         # Zod form schema
+supabase/
+  001_create_subscriptions.sql  # DB migration
+```
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Personal project. No license — not intended for redistribution.
