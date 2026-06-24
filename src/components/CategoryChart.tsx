@@ -22,15 +22,15 @@ function CustomTooltip({ active, payload }: TooltipProps) {
   const { name, value, payload: raw } = payload[0];
 
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-[#1a1a1f] px-3 py-2 shadow-xl">
+    <div className="rounded-lg border border-border/70 bg-popover px-3 py-2 text-popover-foreground shadow-xl">
       <div className="flex items-center gap-2">
         <span
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: raw.color }}
         />
-        <span className="text-[13px] text-zinc-300">{name}</span>
+        <span className="text-[13px] text-muted-foreground">{name}</span>
       </div>
-      <span className="tabular-nums text-[14px] font-semibold text-white">
+      <span className="tabular-nums text-[14px] font-semibold text-foreground">
         {formatMoney(Number(value))}
       </span>
     </div>
@@ -43,10 +43,10 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="rounded-lg border border-white/[0.06] bg-[#111114] p-5">
-        <h2 className="mb-1 text-[15px] font-semibold text-white">支出分布</h2>
-        <p className="mb-4 text-[13px] text-zinc-500">按类别 · 月均</p>
-        <div className="py-10 text-center text-[13px] text-zinc-600">
+      <div className="rounded-lg border border-border/70 bg-card/75 p-5 shadow-xl shadow-black/5 backdrop-blur-xl">
+        <h2 className="mb-1 text-[15px] font-semibold text-foreground">支出分布</h2>
+        <p className="mb-4 text-[13px] text-muted-foreground">按类别 · 月均</p>
+        <div className="py-10 text-center text-[13px] text-muted-foreground">
           暂无数据
         </div>
       </div>
@@ -54,13 +54,18 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
   }
 
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-[#111114] p-5">
-      <h2 className="mb-1 text-[15px] font-semibold text-white">支出分布</h2>
-      <p className="mb-4 text-[13px] text-zinc-500">按类别 · 月均</p>
+    <div className="rounded-lg border border-border/70 bg-card/75 p-5 shadow-xl shadow-black/5 backdrop-blur-xl">
+      <h2 className="mb-1 text-[15px] font-semibold text-foreground">支出分布</h2>
+      <p className="mb-4 text-[13px] text-muted-foreground">按类别 · 月均</p>
 
       <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
         <div className="relative h-40 w-40 shrink-0 sm:h-44 sm:w-44">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={0}
+            className="relative z-20"
+          >
             <PieChart>
               <Pie
                 data={data}
@@ -77,14 +82,17 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip
+                content={<CustomTooltip />}
+                wrapperStyle={{ zIndex: 50, pointerEvents: "none" }}
+              />
             </PieChart>
           </ResponsiveContainer>
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
+            <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
               月均支出
             </span>
-            <span className="text-xl font-semibold text-white tabular-nums">
+            <span className="text-xl font-semibold text-foreground tabular-nums">
               {formatMoney(total).replace(".00", "")}
             </span>
           </div>
@@ -99,10 +107,10 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="shrink-0 text-[13px] text-zinc-300">
+                <span className="shrink-0 text-[13px] text-muted-foreground">
                   {item.name}
                 </span>
-                <span className="ml-auto text-[11px] tabular-nums text-zinc-600">
+                <span className="ml-auto text-[11px] tabular-nums text-muted-foreground/75">
                   {pct.toFixed(0)}%
                 </span>
               </div>

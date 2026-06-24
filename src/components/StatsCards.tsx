@@ -49,21 +49,22 @@ export function StatsCards({ subscriptions = [] }: StatsCardsProps) {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="group relative rounded-lg border border-white/[0.06] bg-[#111114] p-5 transition-all hover:border-white/[0.12] hover:bg-[#15151a]"
+          className="group relative rounded-lg border border-border/70 bg-card/75 p-5 shadow-xl shadow-black/5 backdrop-blur-xl transition-all hover:border-border hover:bg-card/90"
         >
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-[12px] font-medium tracking-wide text-zinc-500">
+            <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
               {stat.label}
             </span>
             <stat.icon className={`h-4 w-4 ${stat.accent} opacity-70`} />
           </div>
-          <div className="text-2xl font-semibold tracking-tight text-white">
+          <div className="text-2xl font-semibold tracking-tight text-foreground">
             {stat.value}
           </div>
-          <div className="mt-1 text-[13px] text-zinc-500">{stat.sub}</div>
+          <div className="mt-1 text-[13px] text-muted-foreground">
+            {stat.sub}
+          </div>
         </div>
       ))}
     </div>
   );
 }
-

@@ -28,9 +28,9 @@ function CustomTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-[#1a1a1f] px-3 py-2 shadow-xl">
-      <div className="mb-1 text-[12px] text-zinc-500">{label}</div>
-      <span className="tabular-nums text-[14px] font-semibold text-white">
+    <div className="rounded-lg border border-border/70 bg-popover px-3 py-2 text-popover-foreground shadow-xl">
+      <div className="mb-1 text-[12px] text-muted-foreground">{label}</div>
+      <span className="tabular-nums text-[14px] font-semibold text-foreground">
         {formatMoney(Number(payload[0].value))}
       </span>
     </div>
@@ -45,15 +45,15 @@ export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
   const maxVal = Math.max(...data.map((item) => item.total), 0);
 
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-[#111114] p-5">
+    <div className="rounded-lg border border-border/70 bg-card/75 p-5 shadow-xl shadow-black/5 backdrop-blur-xl">
       <div className="mb-1 flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-violet-400 opacity-70" />
-        <h2 className="text-[15px] font-semibold text-white">预计支出</h2>
+        <h2 className="text-[15px] font-semibold text-foreground">预计支出</h2>
       </div>
-      <p className="mb-5 text-[13px] text-zinc-500">未来 6 个自然月</p>
+      <p className="mb-5 text-[13px] text-muted-foreground">未来 6 个自然月</p>
 
       {!hasData ? (
-        <div className="py-10 text-center text-[13px] text-zinc-600">
+        <div className="py-10 text-center text-[13px] text-muted-foreground">
           暂无数据
         </div>
       ) : (
@@ -78,7 +78,7 @@ export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
               </defs>
               <CartesianGrid
                 vertical={false}
-                stroke="rgba(255,255,255,0.04)"
+                stroke="var(--border)"
               />
               <XAxis
                 dataKey="label"

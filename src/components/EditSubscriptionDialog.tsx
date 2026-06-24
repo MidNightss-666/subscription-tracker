@@ -24,9 +24,9 @@ export function EditSubscriptionDialog({
 }: EditSubscriptionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-lg border-white/[0.08] bg-[#111114] sm:max-w-[460px]">
+      <DialogContent className="rounded-lg border-border/70 bg-card/95 text-card-foreground shadow-2xl backdrop-blur-xl sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle className="text-[16px] text-white">编辑订阅</DialogTitle>
+          <DialogTitle className="text-[16px] text-foreground">编辑订阅</DialogTitle>
         </DialogHeader>
         {subscription && (
           <SubscriptionForm
@@ -42,4 +42,3 @@ export function EditSubscriptionDialog({
     </Dialog>
   );
 }
-

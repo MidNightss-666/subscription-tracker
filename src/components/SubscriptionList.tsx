@@ -53,11 +53,11 @@ function getDaysUntil(date: string) {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-[#111114]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-        <h2 className="text-[15px] font-semibold text-white">订阅列表</h2>
+    <div className="rounded-lg border border-border/70 bg-card/75 shadow-xl shadow-black/5 backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+        <h2 className="text-[15px] font-semibold text-foreground">订阅列表</h2>
       </div>
-      <div className="px-5 py-16 text-center text-[13px] text-zinc-500">
+      <div className="px-5 py-16 text-center text-[13px] text-muted-foreground">
         暂无订阅，点击右上角“添加订阅”开始记录。
       </div>
     </div>
@@ -131,11 +131,11 @@ export function SubscriptionList({
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-white/[0.06] bg-[#111114]">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-          <h2 className="text-[15px] font-semibold text-white">订阅列表</h2>
+      <div className="rounded-lg border border-border/70 bg-card/75 shadow-xl shadow-black/5 backdrop-blur-xl">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+          <h2 className="text-[15px] font-semibold text-foreground">订阅列表</h2>
         </div>
-        <div className="flex items-center justify-center gap-2 py-16 text-zinc-500">
+        <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-[13px]">加载中...</span>
         </div>
@@ -145,9 +145,9 @@ export function SubscriptionList({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-500/20 bg-[#111114]">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-          <h2 className="text-[15px] font-semibold text-white">订阅列表</h2>
+      <div className="rounded-lg border border-red-500/25 bg-card/75 shadow-xl shadow-black/5 backdrop-blur-xl">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+          <h2 className="text-[15px] font-semibold text-foreground">订阅列表</h2>
         </div>
         <div className="flex flex-col items-center justify-center gap-2 px-5 py-16 text-red-400">
           <AlertCircle className="h-5 w-5" />
@@ -160,10 +160,10 @@ export function SubscriptionList({
   if (subscriptions.length === 0) return <EmptyState />;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#111114]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-        <h2 className="text-[15px] font-semibold text-white">订阅列表</h2>
-        <span className="text-[13px] text-zinc-500">
+    <div className="overflow-hidden rounded-lg border border-border/70 bg-card/75 shadow-xl shadow-black/5 backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+        <h2 className="text-[15px] font-semibold text-foreground">订阅列表</h2>
+        <span className="text-[13px] text-muted-foreground">
           {subscriptions.length} 个项目
         </span>
       </div>
@@ -171,20 +171,20 @@ export function SubscriptionList({
       <div className="hidden md:block">
         <Table>
           <TableHeader>
-            <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
-              <TableHead className="pl-5 text-[12px] font-medium text-zinc-500">
+            <TableRow className="border-b border-border/60 hover:bg-transparent">
+              <TableHead className="pl-5 text-[12px] font-medium text-muted-foreground">
                 名称
               </TableHead>
-              <TableHead className="text-[12px] font-medium text-zinc-500">
+              <TableHead className="text-[12px] font-medium text-muted-foreground">
                 类别
               </TableHead>
-              <TableHead className="text-[12px] font-medium text-zinc-500">
+              <TableHead className="text-[12px] font-medium text-muted-foreground">
                 计费周期
               </TableHead>
-              <TableHead className="text-[12px] font-medium text-zinc-500">
+              <TableHead className="text-[12px] font-medium text-muted-foreground">
                 下次扣费
               </TableHead>
-              <TableHead className="text-right text-[12px] font-medium text-zinc-500">
+              <TableHead className="text-right text-[12px] font-medium text-muted-foreground">
                 金额
               </TableHead>
               <TableHead className="w-24 pr-5 text-right" />
@@ -203,7 +203,7 @@ export function SubscriptionList({
               return (
                 <TableRow
                   key={sub.id}
-                  className="group border-b border-white/[0.04] hover:bg-white/[0.02]"
+                  className="group border-b border-border/45 hover:bg-foreground/[0.04]"
                 >
                   <TableCell className="py-3 pl-5">
                     <div className="flex items-center gap-3">
@@ -213,7 +213,7 @@ export function SubscriptionList({
                       >
                         <Icon className="h-4 w-4" style={{ color: catColor }} />
                       </div>
-                      <span className="text-[14px] font-medium text-white">
+                      <span className="text-[14px] font-medium text-foreground">
                         {sub.name}
                       </span>
                     </div>
@@ -231,16 +231,16 @@ export function SubscriptionList({
                     </span>
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-zinc-400">
+                  <TableCell className="text-[13px] text-muted-foreground">
                     {billingCycleLabel[sub.billing_cycle] ?? sub.billing_cycle}
                   </TableCell>
 
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3 w-3 shrink-0 text-zinc-600" />
+                      <Calendar className="h-3 w-3 shrink-0 text-muted-foreground/70" />
                       <span
                         className={`text-[13px] ${
-                          isUrgent ? "text-amber-400" : "text-zinc-400"
+                          isUrgent ? "text-amber-400" : "text-muted-foreground"
                         }`}
                       >
                         {sub.next_billing_date}
@@ -254,7 +254,7 @@ export function SubscriptionList({
                   </TableCell>
 
                   <TableCell className="text-right">
-                    <span className="tabular-nums text-[14px] font-medium text-white">
+                    <span className="tabular-nums text-[14px] font-medium text-foreground">
                       {formatMoney(sub.price, sub.currency)}
                     </span>
                   </TableCell>
@@ -266,7 +266,7 @@ export function SubscriptionList({
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => onEdit(sub)}
-                        className="text-zinc-500 hover:bg-white/[0.06] hover:text-white"
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground"
                         title="编辑"
                       >
                         <Pencil className="h-4 w-4" />
@@ -277,7 +277,7 @@ export function SubscriptionList({
                         size="icon-sm"
                         onClick={() => handleDelete(sub)}
                         disabled={deletingId === sub.id}
-                        className="text-zinc-500 hover:bg-red-500/10 hover:text-red-300"
+                        className="text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
                         title="删除"
                       >
                         {deletingId === sub.id ? (
@@ -295,7 +295,7 @@ export function SubscriptionList({
         </Table>
       </div>
 
-      <div className="divide-y divide-white/[0.06] md:hidden">
+      <div className="divide-y divide-border/60 md:hidden">
         {subscriptions.map((sub) => {
           const Icon = getIcon(serviceIcons[sub.name] || "FileText");
           const catColor =
@@ -314,24 +314,24 @@ export function SubscriptionList({
                     <Icon className="h-4 w-4" style={{ color: catColor }} />
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-[14px] font-medium text-white">
+                    <div className="truncate text-[14px] font-medium text-foreground">
                       {sub.name}
                     </div>
-                    <div className="mt-1 flex items-center gap-2 text-[12px] text-zinc-500">
+                    <div className="mt-1 flex items-center gap-2 text-[12px] text-muted-foreground">
                       <span>{sub.category}</span>
                       <span>·</span>
                       <span>{billingCycleLabel[sub.billing_cycle]}</span>
                     </div>
                   </div>
                 </div>
-                <div className="text-right text-[14px] font-semibold tabular-nums text-white">
+                <div className="text-right text-[14px] font-semibold tabular-nums text-foreground">
                   {formatMoney(sub.price, sub.currency)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-1.5 text-[13px] text-zinc-400">
-                  <Calendar className="h-3 w-3 text-zinc-600" />
+                <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                  <Calendar className="h-3 w-3 text-muted-foreground/70" />
                   <span className={isUrgent ? "text-amber-400" : ""}>
                     {sub.next_billing_date}
                   </span>
@@ -348,7 +348,7 @@ export function SubscriptionList({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => onEdit(sub)}
-                    className="text-zinc-500 hover:bg-white/[0.06] hover:text-white"
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground"
                     title="编辑"
                   >
                     <Pencil className="h-4 w-4" />
@@ -359,7 +359,7 @@ export function SubscriptionList({
                     size="icon-sm"
                     onClick={() => handleDelete(sub)}
                     disabled={deletingId === sub.id}
-                    className="text-zinc-500 hover:bg-red-500/10 hover:text-red-300"
+                    className="text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
                     title="删除"
                   >
                     {deletingId === sub.id ? (
@@ -377,4 +377,3 @@ export function SubscriptionList({
     </div>
   );
 }
-

@@ -147,8 +147,8 @@ export function SubscriptionForm({
   }
 
   const inputCls =
-    "h-9 rounded-lg border-white/[0.08] bg-[#0a0a0c] text-[14px] text-white placeholder:text-zinc-600";
-  const labelCls = "text-[13px] text-zinc-400";
+    "h-9 rounded-lg border-border/70 bg-background/45 text-[14px] text-foreground shadow-sm backdrop-blur-xl placeholder:text-muted-foreground";
+  const labelCls = "text-[13px] text-muted-foreground";
   const errorCls = "mt-1 text-[12px] text-red-400";
 
   return (
@@ -172,7 +172,7 @@ export function SubscriptionForm({
             金额
           </Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-zinc-500">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-muted-foreground">
               {getCurrencySymbol(currency)}
             </span>
             <Input
@@ -195,7 +195,7 @@ export function SubscriptionForm({
             <SelectTrigger className={`${inputCls} w-full`}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
+            <SelectContent className="rounded-lg border-border/70 bg-popover">
               {currencies.map((code) => (
                 <SelectItem key={code} value={code} className="text-[14px]">
                   {code}
@@ -216,7 +216,7 @@ export function SubscriptionForm({
             <SelectTrigger className={`${inputCls} w-full`}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
+            <SelectContent className="rounded-lg border-border/70 bg-popover">
               <SelectItem value="monthly" className="text-[14px]">
                 每月
               </SelectItem>
@@ -233,7 +233,7 @@ export function SubscriptionForm({
             <SelectTrigger className={`${inputCls} w-full`}>
               <SelectValue placeholder="选择类别" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
+            <SelectContent className="rounded-lg border-border/70 bg-popover">
               {categories.map((category) => (
                 <SelectItem key={category} value={category} className="text-[14px]">
                   {category}
@@ -301,14 +301,14 @@ export function SubscriptionForm({
           variant="ghost"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="h-9 rounded-lg text-[13px] text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+          className="h-9 rounded-lg text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           取消
         </Button>
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="h-9 gap-2 rounded-lg bg-white px-5 text-[13px] font-medium text-black hover:bg-zinc-200"
+          className="h-9 gap-2 rounded-lg bg-primary px-5 text-[13px] font-medium text-primary-foreground hover:bg-primary/90"
         >
           {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {isEdit ? "保存" : "添加"}

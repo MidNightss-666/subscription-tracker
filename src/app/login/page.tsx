@@ -11,6 +11,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { FluidBackground } from "@/components/FluidBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,7 +143,7 @@ function LoginForm() {
       return { text: "请输入有效的邮箱地址", className: "text-red-400" };
     }
     if (emailCheckState === "checking") {
-      return { text: "正在检查邮箱...", className: "text-zinc-500" };
+      return { text: "正在检查邮箱...", className: "text-muted-foreground" };
     }
     if (emailCheckState === "registered") {
       return { text: "该邮箱已注册，请直接登录。", className: "text-red-400" };
@@ -275,28 +277,32 @@ function LoginForm() {
   }
 
   const inputCls =
-    "h-10 rounded-lg border-white/[0.08] bg-[#0a0a0c] text-[14px] text-white placeholder:text-zinc-600";
-  const labelCls = "text-[13px] text-zinc-400";
+    "h-10 rounded-lg border-border/70 bg-background/45 text-[14px] text-foreground shadow-sm backdrop-blur-xl placeholder:text-muted-foreground";
+  const labelCls = "text-[13px] text-muted-foreground";
   const passwordToggleCls =
-    "absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-white";
+    "absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-[390px]">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10 text-foreground">
+      <FluidBackground />
+      <div className="absolute right-4 top-4 z-20">
+        <ThemeToggle />
+      </div>
+      <div className="relative z-10 w-full max-w-[390px]">
         <div className="mb-8 flex items-center justify-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-violet-600">
             <Activity className="h-4 w-4 text-white" />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-white">
+          <span className="text-lg font-semibold tracking-tight text-foreground">
             SubTrack
           </span>
         </div>
 
-        <div className="rounded-lg border border-white/[0.06] bg-[#111114] p-6">
-          <h1 className="mb-1 text-[16px] font-semibold text-white">
+        <div className="rounded-lg border border-border/70 bg-card/75 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl">
+          <h1 className="mb-1 text-[16px] font-semibold text-foreground">
             {isSignUp ? "创建账号" : "登录"}
           </h1>
-          <p className="mb-6 text-[13px] text-zinc-500">
+          <p className="mb-6 text-[13px] text-muted-foreground">
             {isSignUp
               ? "注册后会发送确认邮件，点击邮件链接即可激活账户。"
               : "登录你的账号继续管理订阅。"}
@@ -450,14 +456,14 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={resetCaptcha}
-                    className="flex items-center gap-1 text-[11px] text-zinc-500 transition-colors hover:text-white"
+                    className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <RefreshCw className="h-3 w-3" />
                     换一题
                   </button>
                 </div>
                 <div className="grid grid-cols-[1fr_96px] gap-3">
-                  <div className="flex h-10 items-center justify-center rounded-lg border border-white/[0.08] bg-[#0a0a0c] text-[14px] font-medium text-white">
+                  <div className="flex h-10 items-center justify-center rounded-lg border border-border/70 bg-background/45 text-[14px] font-medium text-foreground shadow-sm backdrop-blur-xl">
                     {captcha.left} {captcha.operator} {captcha.right} = ?
                   </div>
                   <div className="relative">
@@ -511,7 +517,7 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={loading || (isSignUp && !canSubmitSignUp)}
-              className="h-10 w-full gap-2 rounded-lg bg-white text-[14px] font-medium text-black hover:bg-zinc-200"
+              className="h-10 w-full gap-2 rounded-lg bg-primary text-[14px] font-medium text-primary-foreground hover:bg-primary/90"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSignUp ? "发送确认邮件" : "登录"}
@@ -522,7 +528,7 @@ function LoginForm() {
             <button
               type="button"
               onClick={switchMode}
-              className="text-[13px] text-zinc-500 transition-colors hover:text-white"
+              className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
             >
               {isSignUp ? "已有账号？登录" : "没有账号？注册"}
             </button>
@@ -536,4 +542,3 @@ function LoginForm() {
 export default function LoginPage() {
   return <LoginForm />;
 }
-
