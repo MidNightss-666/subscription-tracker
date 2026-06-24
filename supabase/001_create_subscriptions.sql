@@ -69,3 +69,17 @@ returns numeric as $$
   where user_id = p_user_id;
 $$ language sql stable;
 
+-- 7. Optional helper: check whether an email already exists in Supabase Auth
+create or replace function is_email_registered(p_email text)
+returns boolean
+security definer
+set search_path = auth, public
+as $$
+  select exists (
+    select 1
+    from auth.users
+    where lower(email) = lower(trim(p_email))
+  );
+$$ language sql stable;
+
+grant execute on function is_email_registered(text) to anon, authenticated;

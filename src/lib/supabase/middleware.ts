@@ -8,6 +8,12 @@ export async function updateSession(request: NextRequest) {
   });
   const pathname = request.nextUrl.pathname;
 
+  if (pathname === "/login" && request.nextUrl.searchParams.has("error")) {
+    const url = request.nextUrl.clone();
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   if (!hasSupabaseEnv()) {
     if (!pathname.startsWith("/login") && !pathname.startsWith("/auth")) {
       const url = request.nextUrl.clone();

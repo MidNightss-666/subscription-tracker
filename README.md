@@ -53,6 +53,13 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
 You can find these values in your Supabase dashboard under **Settings > API**.
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported as an alias for the publishable key.
 
+For email confirmation, add these redirect URLs in Supabase Auth:
+
+```text
+http://localhost:3000/auth/confirm
+http://localhost:3000/auth/callback
+```
+
 ### 3. Set up the database
 
 Run the SQL migration in your Supabase SQL Editor:

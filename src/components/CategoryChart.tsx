@@ -60,7 +60,7 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
 
       <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
         <div className="relative h-40 w-40 shrink-0 sm:h-44 sm:w-44">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <PieChart>
               <Pie
                 data={data}
@@ -113,4 +113,3 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
     </div>
   );
 }
-

@@ -58,7 +58,7 @@ export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
         </div>
       ) : (
         <div className="h-52 w-full sm:h-60">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart
               data={data}
               margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
@@ -120,4 +120,3 @@ export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
     </div>
   );
 }
-
