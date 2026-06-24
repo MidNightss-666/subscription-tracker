@@ -1,22 +1,22 @@
 # SubTrack
 
-A personal subscription management dashboard. Track recurring expenses, visualize monthly spending, and stay on top of every subscription.
+A personal subscription management dashboard. Track recurring expenses, visualize monthly spending, and stay on top of upcoming renewals.
 
-> This project is a personal side project built with **vibe coding** — an experimental, intuition-driven approach to development. It is not affiliated with any organization and is intended for personal use and learning.
+> This project is a personal side project built with **vibe coding**, an experimental, intuition-driven approach to development. It is not affiliated with any organization and is intended for personal use and learning.
 
 ## Features
 
-- **Authentication** — Email/password sign-up and login via Supabase Auth
-- **Subscription CRUD** — Add, edit, and manage recurring subscriptions
-- **Dashboard** — Monthly/yearly totals, growth rate, and category breakdown at a glance
-- **Donut Chart** — Category spending distribution with a purple/cyan/indigo dark-mode palette
-- **Bar Chart** — 6-month forecast of expected billing based on `next_billing_date`
-- **Responsive** — Works on both desktop and mobile screens
+- **Authentication**: Email/password sign-up and login via Supabase Auth
+- **Subscription CRUD**: Add, edit, list, and delete recurring subscriptions
+- **Dashboard**: Monthly/yearly totals, real month-over-month change, and category breakdown
+- **Donut chart**: Category spending distribution in a focused dark dashboard
+- **Bar chart**: 6-month calendar forecast of expected billing
+- **Responsive UI**: Table layout on desktop and scan-friendly cards on mobile
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+| --- | --- |
 | Framework | Next.js 16 (App Router) |
 | Language | TypeScript |
 | UI | React 19, Tailwind CSS 4, shadcn/ui |
@@ -51,6 +51,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
 ```
 
 You can find these values in your Supabase dashboard under **Settings > API**.
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported as an alias for the publishable key.
 
 ### 3. Set up the database
 
@@ -72,11 +73,11 @@ Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/l
 
 ## Deployment
 
-The app can be deployed to any platform that supports Next.js App Router (Vercel, Netlify, etc.).
+The app can be deployed to any platform that supports Next.js App Router, such as Vercel or Netlify.
 
 1. Set the two environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) in your hosting provider's dashboard.
 2. Ensure the Supabase database migration has been applied.
-3. Deploy — no additional build configuration is needed.
+3. Deploy. No additional build configuration is needed.
 
 ```bash
 npm run build
@@ -85,17 +86,17 @@ npm start
 
 ## Project Structure
 
-```
+```text
 src/
   app/
     page.tsx              # Main dashboard
     login/page.tsx        # Login / sign-up
     auth/callback/        # OAuth callback handler
-    middleware.ts         # Auth session refresh & route protection
+    proxy.ts             # Auth session refresh & route protection
   components/
     SubscriptionForm.tsx  # Add / edit form
-    SubscriptionList.tsx  # Data table
-    StatsCards.tsx        # Monthly, yearly, growth stats
+    SubscriptionList.tsx  # Data table and mobile cards
+    StatsCards.tsx        # Monthly, yearly, and MoM stats
     CategoryChart.tsx     # Donut chart
     ForecastChart.tsx     # 6-month bar chart
   hooks/
@@ -104,8 +105,8 @@ src/
     supabase/
       client.ts           # Browser Supabase client
       server.ts           # Server Supabase client
-      middleware.ts        # Session refresh logic
-    subscriptions.ts      # Types, mock data, utilities
+      middleware.ts       # Session refresh logic
+    subscriptions.ts      # Types and utilities
     validation.ts         # Zod form schema
 supabase/
   001_create_subscriptions.sql  # DB migration
@@ -113,4 +114,4 @@ supabase/
 
 ## License
 
-Personal project. No license — not intended for redistribution.
+Personal project. No license; not intended for redistribution.

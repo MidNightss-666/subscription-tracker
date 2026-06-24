@@ -1,12 +1,12 @@
 "use client";
 
+import { SubscriptionForm } from "@/components/SubscriptionForm";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SubscriptionForm } from "@/components/SubscriptionForm";
 import type { Subscription } from "@/lib/subscriptions";
 
 interface EditSubscriptionDialogProps {
@@ -24,11 +24,9 @@ export function EditSubscriptionDialog({
 }: EditSubscriptionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px] bg-[#111114] border-white/[0.08] rounded-xl">
+      <DialogContent className="rounded-lg border-white/[0.08] bg-[#111114] sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle className="text-white text-[16px]">
-            编辑订阅
-          </DialogTitle>
+          <DialogTitle className="text-[16px] text-white">编辑订阅</DialogTitle>
         </DialogHeader>
         {subscription && (
           <SubscriptionForm
@@ -44,3 +42,4 @@ export function EditSubscriptionDialog({
     </Dialog>
   );
 }
+

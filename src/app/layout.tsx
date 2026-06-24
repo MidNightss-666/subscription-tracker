@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SubTrack — 订阅管理看板",
-  description: "个人订阅管理看板，追踪每一笔定期支出",
+  title: "SubTrack · 订阅管理看板",
+  description: "个人订阅管理看板，追踪每一笔定期支出。",
 };
 
 export default function RootLayout({
@@ -19,3 +19,4 @@ export default function RootLayout({
     </html>
   );
 }
+

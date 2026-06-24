@@ -1,33 +1,9 @@
 import { useMemo } from "react";
-import type { Subscription } from "@/lib/subscriptions";
-
-// 深色系配色：紫、青、靛蓝为主
-const CHART_COLORS = [
-  "#8b5cf6", // violet-500
-  "#06b6d4", // cyan-500
-  "#6366f1", // indigo-500
-  "#a78bfa", // violet-400
-  "#22d3ee", // cyan-400
-  "#818cf8", // indigo-400
-];
-
-function getMonthlyAmount(sub: Subscription): number {
-  return sub.billing_cycle === "yearly" ? sub.price / 12 : sub.price;
-}
-
-function getNextBillingDates(sub: Subscription, count: number): string[] {
-  const dates: string[] = [];
-  const date = new Date(sub.next_billing_date + "T00:00:00");
-  for (let i = 0; i < count; i++) {
-    dates.push(date.toISOString().slice(0, 7)); // "YYYY-MM"
-    if (sub.billing_cycle === "monthly") {
-      date.setMonth(date.getMonth() + 1);
-    } else {
-      date.setFullYear(date.getFullYear() + 1);
-    }
-  }
-  return dates;
-}
+import {
+  getCategoryBreakdown,
+  getMonthlyAmount,
+  type Subscription,
+} from "@/lib/subscriptions";
 
 export interface CategoryData {
   name: string;
@@ -36,85 +12,178 @@ export interface CategoryData {
 }
 
 export interface ForecastData {
-  month: string;   // "2026-05"
-  label: string;   // "5月"
+  month: string;
+  label: string;
   total: number;
 }
 
 export interface SubscriptionStats {
   monthlyTotal: number;
   yearlyTotal: number;
+  currentMonthTotal: number;
+  previousMonthTotal: number;
   growthRate: number;
   categoryBreakdown: CategoryData[];
   monthlyForecast: ForecastData[];
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function parseLocalDate(value: string) {
+  return new Date(`${value}T00:00:00`);
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function addCycle(date: Date, cycle: Subscription["billing_cycle"]) {
+  const next = new Date(date);
+  if (cycle === "monthly") {
+    next.setMonth(next.getMonth() + 1);
+  } else {
+    next.setFullYear(next.getFullYear() + 1);
+  }
+  return next;
+}
+
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}`;
+}
+
+function monthLabel(date: Date) {
+  return `${date.getMonth() + 1}月`;
+}
+
+function getFirstBillingOnOrAfter(sub: Subscription, target: Date) {
+  let cursor = parseLocalDate(sub.next_billing_date);
+
+  while (cursor < target) {
+    cursor = addCycle(cursor, sub.billing_cycle);
+  }
+
+  return cursor;
+}
+
+function getFirstRecurringDateOnOrAfter(
+  startDate: Date,
+  cycle: Subscription["billing_cycle"],
+  target: Date
+) {
+  let cursor = new Date(startDate);
+
+  while (cursor < target) {
+    cursor = addCycle(cursor, cycle);
+  }
+
+  return cursor;
+}
+
+function getScheduledTotalForMonth(
+  subscriptions: Subscription[],
+  monthStart: Date
+) {
+  const monthEnd = endOfMonth(monthStart);
+
+  return Number(
+    subscriptions
+      .reduce((sum, sub) => {
+        const startDate = parseLocalDate(sub.start_date);
+        if (startDate > monthEnd) return sum;
+
+        const firstBilling = getFirstRecurringDateOnOrAfter(
+          startDate,
+          sub.billing_cycle,
+          monthStart
+        );
+        return firstBilling <= monthEnd ? sum + sub.price : sum;
+      }, 0)
+      .toFixed(2)
+  );
+}
+
+function getForecast(subscriptions: Subscription[], months = 6): ForecastData[] {
+  const today = new Date();
+  const rangeStart = startOfMonth(today);
+  const monthStarts = Array.from(
+    { length: months },
+    (_, index) => new Date(today.getFullYear(), today.getMonth() + index, 1)
+  );
+  const rangeEnd = endOfMonth(monthStarts[monthStarts.length - 1]);
+  const monthTotals = new Map(monthStarts.map((date) => [monthKey(date), 0]));
+
+  for (const sub of subscriptions) {
+    let billingDate = getFirstBillingOnOrAfter(sub, rangeStart);
+
+    while (billingDate <= rangeEnd) {
+      const key = monthKey(billingDate);
+      monthTotals.set(key, (monthTotals.get(key) || 0) + sub.price);
+      billingDate = addCycle(billingDate, sub.billing_cycle);
+
+      // Defensive guard against invalid dates causing an endless loop.
+      if (Number.isNaN(billingDate.getTime())) break;
+      if ((billingDate.getTime() - rangeStart.getTime()) / MS_PER_DAY > 3700) {
+        break;
+      }
+    }
+  }
+
+  return monthStarts.map((date) => {
+    const key = monthKey(date);
+    return {
+      month: key,
+      label: monthLabel(date),
+      total: Number((monthTotals.get(key) || 0).toFixed(2)),
+    };
+  });
 }
 
 export function useSubscriptionStats(
   subscriptions: Subscription[]
 ): SubscriptionStats {
   return useMemo(() => {
-    let monthlyTotal = 0;
-    const categoryMap = new Map<string, number>();
-
-    for (const sub of subscriptions) {
-      const monthly = getMonthlyAmount(sub);
-      monthlyTotal += monthly;
-      categoryMap.set(
-        sub.category,
-        (categoryMap.get(sub.category) || 0) + monthly
-      );
-    }
-
-    const yearlyTotal = monthlyTotal * 12;
-
-    // Mock: 假设上个月总支出比当前少 8.5%
-    const lastMonthTotal = monthlyTotal / (1 + 0.085);
+    const monthlyTotal = Number(
+      subscriptions
+        .reduce((sum, sub) => sum + getMonthlyAmount(sub), 0)
+        .toFixed(2)
+    );
+    const yearlyTotal = Number((monthlyTotal * 12).toFixed(2));
+    const currentMonth = startOfMonth(new Date());
+    const previousMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() - 1,
+      1
+    );
+    const currentMonthTotal = getScheduledTotalForMonth(
+      subscriptions,
+      currentMonth
+    );
+    const previousMonthTotal = getScheduledTotalForMonth(
+      subscriptions,
+      previousMonth
+    );
     const growthRate =
-      lastMonthTotal > 0
-        ? ((monthlyTotal - lastMonthTotal) / lastMonthTotal) * 100
-        : 0;
-
-    const categoryBreakdown: CategoryData[] = Array.from(
-      categoryMap,
-      ([name, value], i) => ({
-        name,
-        value: Number(value.toFixed(2)),
-        color: CHART_COLORS[i % CHART_COLORS.length],
-      })
-    );
-
-    // 未来 6 个月预期支出
-    const FORECAST_MONTHS = 6;
-    const monthTotals = new Map<string, number>();
-    for (const sub of subscriptions) {
-      const dates = getNextBillingDates(sub, FORECAST_MONTHS);
-      const amount = sub.price;
-      for (const ym of dates) {
-        monthTotals.set(ym, (monthTotals.get(ym) || 0) + amount);
-      }
-    }
-
-    const sortedMonths = Array.from(monthTotals.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(0, FORECAST_MONTHS);
-
-    const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月",
-                        "7月", "8月", "9月", "10月", "11月", "12月"];
-
-    const monthlyForecast: ForecastData[] = sortedMonths.map(
-      ([month, total]) => ({
-        month,
-        label: monthNames[parseInt(month.split("-")[1], 10) - 1],
-        total: Number(total.toFixed(2)),
-      })
-    );
+      previousMonthTotal > 0
+        ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
+        : currentMonthTotal > 0
+          ? 100
+          : 0;
 
     return {
-      monthlyTotal: Number(monthlyTotal.toFixed(2)),
-      yearlyTotal: Number(yearlyTotal.toFixed(2)),
+      monthlyTotal,
+      yearlyTotal,
+      currentMonthTotal,
+      previousMonthTotal,
       growthRate: Number(growthRate.toFixed(1)),
-      categoryBreakdown,
-      monthlyForecast,
+      categoryBreakdown: getCategoryBreakdown(subscriptions),
+      monthlyForecast: getForecast(subscriptions),
     };
   }, [subscriptions]);
 }

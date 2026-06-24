@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useController } from "react-hook-form";
+import { useController, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CalendarClock } from "lucide-react";
+import { CalendarClock, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,11 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { createBrowserClient } from "@/lib/supabase/client";
 import {
-  type Subscription,
   categories,
+  getCurrencySymbol,
+  type Subscription,
 } from "@/lib/subscriptions";
 import {
   subscriptionSchema,
@@ -30,9 +31,12 @@ interface SubscriptionFormProps {
   onCancel: () => void;
 }
 
-function calculateNextBillingDate(startDate: string, billingCycle: string): string {
+const currencies = ["USD", "CNY", "EUR", "GBP", "JPY"];
+
+function calculateNextBillingDate(startDate: string, billingCycle: string) {
   if (!startDate) return "";
-  const date = new Date(startDate + "T00:00:00");
+
+  const date = new Date(`${startDate}T00:00:00`);
   const now = new Date();
   while (date <= now) {
     if (billingCycle === "monthly") {
@@ -41,6 +45,7 @@ function calculateNextBillingDate(startDate: string, billingCycle: string): stri
       date.setFullYear(date.getFullYear() + 1);
     }
   }
+
   return date.toISOString().slice(0, 10);
 }
 
@@ -49,16 +54,14 @@ export function SubscriptionForm({
   onSuccess,
   onCancel,
 }: SubscriptionFormProps) {
-  const isEdit = !!subscription;
+  const isEdit = Boolean(subscription);
   const [serverError, setServerError] = useState<string | null>(null);
-  const supabase = createBrowserClient();
 
   const {
     register,
     handleSubmit,
     control,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
@@ -68,7 +71,8 @@ export function SubscriptionForm({
       currency: subscription?.currency ?? "USD",
       billing_cycle: subscription?.billing_cycle ?? "monthly",
       category: subscription?.category ?? "",
-      start_date: subscription?.start_date ?? new Date().toISOString().slice(0, 10),
+      start_date:
+        subscription?.start_date ?? new Date().toISOString().slice(0, 10),
       next_billing_date: subscription?.next_billing_date ?? "",
     },
   });
@@ -81,10 +85,14 @@ export function SubscriptionForm({
     name: "category",
     control,
   });
+  const { field: currencyField } = useController({
+    name: "currency",
+    control,
+  });
 
-  const priceValue = watch("price");
-  const startDate = watch("start_date");
-  const billingCycle = watch("billing_cycle");
+  const startDate = useWatch({ control, name: "start_date" });
+  const billingCycle = useWatch({ control, name: "billing_cycle" });
+  const currency = useWatch({ control, name: "currency" });
 
   function handleAutoCalcNextDate() {
     const next = calculateNextBillingDate(startDate, billingCycle);
@@ -95,7 +103,7 @@ export function SubscriptionForm({
     setServerError(null);
 
     const payload = {
-      name: data.name,
+      name: data.name.trim(),
       price: Number(data.price),
       currency: data.currency,
       billing_cycle: data.billing_cycle,
@@ -103,8 +111,9 @@ export function SubscriptionForm({
       start_date: data.start_date,
       next_billing_date: data.next_billing_date,
     };
+    const supabase = createBrowserClient();
 
-    if (isEdit) {
+    if (isEdit && subscription) {
       const { error } = await supabase
         .from("subscriptions")
         .update(payload)
@@ -115,7 +124,10 @@ export function SubscriptionForm({
         return;
       }
     } else {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         setServerError("请先登录");
         return;
@@ -135,13 +147,12 @@ export function SubscriptionForm({
   }
 
   const inputCls =
-    "bg-[#0a0a0c] border-white/[0.08] text-white placeholder:text-zinc-600 h-9 text-[14px] rounded-lg";
-  const labelCls = "text-zinc-400 text-[13px]";
-  const errorCls = "text-[12px] text-red-400 mt-1";
+    "h-9 rounded-lg border-white/[0.08] bg-[#0a0a0c] text-[14px] text-white placeholder:text-zinc-600";
+  const labelCls = "text-[13px] text-zinc-400";
+  const errorCls = "mt-1 text-[12px] text-red-400";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-2">
-      {/* 名称 */}
       <div className="space-y-2">
         <Label htmlFor="name" className={labelCls}>
           名称
@@ -155,14 +166,15 @@ export function SubscriptionForm({
         {errors.name && <p className={errorCls}>{errors.name.message}</p>}
       </div>
 
-      {/* 金额 + 计费周期 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
         <div className="space-y-2">
           <Label htmlFor="price" className={labelCls}>
             金额
           </Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-[14px]">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-zinc-500">
+              {getCurrencySymbol(currency)}
+            </span>
             <Input
               id="price"
               type="number"
@@ -170,24 +182,41 @@ export function SubscriptionForm({
               min="0"
               inputMode="decimal"
               placeholder="9.99"
-              className={`${inputCls} pl-7`}
+              className={`${inputCls} pl-8`}
               {...register("price")}
             />
           </div>
           {errors.price && <p className={errorCls}>{errors.price.message}</p>}
         </div>
+
+        <div className="space-y-2">
+          <Label className={labelCls}>币种</Label>
+          <Select value={currencyField.value} onValueChange={currencyField.onChange}>
+            <SelectTrigger className={`${inputCls} w-full`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
+              {currencies.map((code) => (
+                <SelectItem key={code} value={code} className="text-[14px]">
+                  {code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label className={labelCls}>计费周期</Label>
           <Select
             value={billingCycleField.value}
             onValueChange={billingCycleField.onChange}
           >
-            <SelectTrigger
-              className={`${inputCls} w-full`}
-            >
+            <SelectTrigger className={`${inputCls} w-full`}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#1a1a1f] border-white/[0.08] rounded-lg">
+            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
               <SelectItem value="monthly" className="text-[14px]">
                 每月
               </SelectItem>
@@ -197,10 +226,28 @@ export function SubscriptionForm({
             </SelectContent>
           </Select>
         </div>
+
+        <div className="space-y-2">
+          <Label className={labelCls}>类别</Label>
+          <Select value={categoryField.value} onValueChange={categoryField.onChange}>
+            <SelectTrigger className={`${inputCls} w-full`}>
+              <SelectValue placeholder="选择类别" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg border-white/[0.08] bg-[#1a1a1f]">
+              {categories.map((category) => (
+                <SelectItem key={category} value={category} className="text-[14px]">
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.category && (
+            <p className={errorCls}>{errors.category.message}</p>
+          )}
+        </div>
       </div>
 
-      {/* 日期 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="start_date" className={labelCls}>
             开始日期
@@ -215,15 +262,16 @@ export function SubscriptionForm({
             <p className={errorCls}>{errors.start_date.message}</p>
           )}
         </div>
+
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Label htmlFor="next_billing_date" className={labelCls}>
               下次扣费
             </Label>
             <button
               type="button"
               onClick={handleAutoCalcNextDate}
-              className="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-sky-400 transition-colors hover:text-sky-300"
             >
               <CalendarClock className="h-3 w-3" />
               自动计算
@@ -241,51 +289,26 @@ export function SubscriptionForm({
         </div>
       </div>
 
-      {/* 类别 */}
-      <div className="space-y-2">
-        <Label className={labelCls}>类别</Label>
-        <Select
-          value={categoryField.value}
-          onValueChange={categoryField.onChange}
-        >
-          <SelectTrigger className={`${inputCls} w-full`}>
-            <SelectValue placeholder="选择类别" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#1a1a1f] border-white/[0.08] rounded-lg">
-            {categories.map((c) => (
-              <SelectItem key={c} value={c} className="text-[14px]">
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.category && (
-          <p className={errorCls}>{errors.category.message}</p>
-        )}
-      </div>
-
-      {/* 服务端错误 */}
       {serverError && (
-        <p className="text-[13px] text-red-400 bg-red-400/10 rounded-lg px-3 py-2">
+        <p className="rounded-lg bg-red-400/10 px-3 py-2 text-[13px] text-red-400">
           {serverError}
         </p>
       )}
 
-      {/* 操作按钮 */}
       <div className="flex justify-end gap-3 pt-2">
         <Button
           type="button"
           variant="ghost"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="text-zinc-400 hover:text-white hover:bg-white/[0.06] text-[13px] h-9 rounded-lg"
+          className="h-9 rounded-lg text-[13px] text-zinc-400 hover:bg-white/[0.06] hover:text-white"
         >
           取消
         </Button>
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-white text-black hover:bg-zinc-200 font-medium text-[13px] h-9 px-5 rounded-lg gap-2"
+          className="h-9 gap-2 rounded-lg bg-white px-5 text-[13px] font-medium text-black hover:bg-zinc-200"
         >
           {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {isEdit ? "保存" : "添加"}
