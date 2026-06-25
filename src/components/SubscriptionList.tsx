@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
+  Bell,
   Calendar,
   Loader2,
   Pencil,
@@ -184,6 +185,9 @@ export function SubscriptionList({
               <TableHead className="text-[12px] font-medium text-muted-foreground">
                 下次扣费
               </TableHead>
+              <TableHead className="text-[12px] font-medium text-muted-foreground">
+                邮件提醒
+              </TableHead>
               <TableHead className="text-right text-[12px] font-medium text-muted-foreground">
                 金额
               </TableHead>
@@ -250,6 +254,23 @@ export function SubscriptionList({
                           {daysUntil === 0 ? "今天" : `${daysUntil} 天后`}
                         </span>
                       )}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                      <Bell
+                        className={`h-3 w-3 ${
+                          sub.email_notifications_enabled
+                            ? "text-sky-400"
+                            : "text-muted-foreground/40"
+                        }`}
+                      />
+                      <span>
+                        {sub.email_notifications_enabled
+                          ? `提前 ${sub.notify_days_before} 天`
+                          : "未提醒"}
+                      </span>
                     </div>
                   </TableCell>
 
@@ -340,6 +361,21 @@ export function SubscriptionList({
                       {daysUntil === 0 ? "今天" : `${daysUntil} 天后`}
                     </span>
                   )}
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                  <Bell
+                    className={`h-3 w-3 ${
+                      sub.email_notifications_enabled
+                        ? "text-sky-400"
+                        : "text-muted-foreground/40"
+                    }`}
+                  />
+                  <span>
+                    {sub.email_notifications_enabled
+                      ? `提前 ${sub.notify_days_before} 天`
+                      : "未提醒"}
+                  </span>
                 </div>
 
                 <div className="flex gap-1">

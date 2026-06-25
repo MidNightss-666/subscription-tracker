@@ -48,10 +48,17 @@ Create a `.env.local` file in the project root:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+RESEND_API_KEY=re_123456789_fake_example
+REMINDER_EMAIL_FROM=SubTrack <notifications@example.com>
+SUBSCRIPTION_REMINDER_CRON_SECRET=replace-with-a-long-random-secret
 ```
 
 You can find these values in your Supabase dashboard under **Settings > API**.
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported as an alias for the publishable key.
+`SUPABASE_SERVICE_ROLE_KEY` is required only on the server for the scheduled reminder sender. Never expose it to browser code.
+
+Create the Resend API key in Resend, and use a verified sender domain or sender address for `REMINDER_EMAIL_FROM`.
 
 For email confirmation, add these redirect URLs in Supabase Auth:
 
@@ -66,11 +73,28 @@ Run the SQL migration in your Supabase SQL Editor:
 
 ```bash
 supabase/001_create_subscriptions.sql
+supabase/002_add_email_notifications.sql
 ```
 
-This creates the `subscriptions` table, indexes, RLS policies, and a helper function.
+This creates the `subscriptions` table, indexes, RLS policies, helper functions, and email reminder columns.
 
-### 4. Run the dev server
+### 4. Configure scheduled reminders
+
+Deploy the app, then create a Supabase scheduled job that sends a daily POST request to:
+
+```text
+https://your-app.example.com/api/reminders/send
+```
+
+Include this header:
+
+```text
+Authorization: Bearer <SUBSCRIPTION_REMINDER_CRON_SECRET>
+```
+
+The endpoint returns only aggregate counts (`checked`, `due`, `sent`, `failed`) and does not expose subscription details.
+
+### 5. Run the dev server
 
 ```bash
 npm run dev
@@ -82,9 +106,10 @@ Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/l
 
 The app can be deployed to any platform that supports Next.js App Router, such as Vercel or Netlify.
 
-1. Set the two environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) in your hosting provider's dashboard.
+1. Set the Supabase, Resend, sender, and cron-secret environment variables in your hosting provider's dashboard.
 2. Ensure the Supabase database migration has been applied.
-3. Deploy. No additional build configuration is needed.
+3. Configure the Supabase scheduled job to call the deployed reminder endpoint once per day.
+4. Deploy. No additional build configuration is needed.
 
 ```bash
 npm run build

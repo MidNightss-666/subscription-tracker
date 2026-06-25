@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useController, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarClock, Loader2 } from "lucide-react";
+import { Bell, CalendarClock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import {
   subscriptionSchema,
   type SubscriptionFormData,
 } from "@/lib/validation";
+import { getBillingPeriodDays } from "@/lib/reminders";
 
 interface SubscriptionFormProps {
   subscription?: Subscription | null;
@@ -74,6 +75,11 @@ export function SubscriptionForm({
       start_date:
         subscription?.start_date ?? new Date().toISOString().slice(0, 10),
       next_billing_date: subscription?.next_billing_date ?? "",
+      email_notifications_enabled:
+        subscription?.email_notifications_enabled ?? false,
+      notify_days_before: subscription
+        ? String(subscription.notify_days_before)
+        : "3",
     },
   });
 
@@ -93,6 +99,20 @@ export function SubscriptionForm({
   const startDate = useWatch({ control, name: "start_date" });
   const billingCycle = useWatch({ control, name: "billing_cycle" });
   const currency = useWatch({ control, name: "currency" });
+  const emailNotificationsEnabled = useWatch({
+    control,
+    name: "email_notifications_enabled",
+  });
+  const nextBillingDate = useWatch({ control, name: "next_billing_date" });
+
+  let maxNotifyDays: number | null = null;
+  try {
+    if (nextBillingDate) {
+      maxNotifyDays = getBillingPeriodDays(nextBillingDate, billingCycle);
+    }
+  } catch {
+    maxNotifyDays = null;
+  }
 
   function handleAutoCalcNextDate() {
     const next = calculateNextBillingDate(startDate, billingCycle);
@@ -110,6 +130,8 @@ export function SubscriptionForm({
       category: data.category,
       start_date: data.start_date,
       next_billing_date: data.next_billing_date,
+      email_notifications_enabled: data.email_notifications_enabled,
+      notify_days_before: Number(data.notify_days_before),
     };
     const supabase = createBrowserClient();
 
@@ -287,6 +309,48 @@ export function SubscriptionForm({
             <p className={errorCls}>{errors.next_billing_date.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border/60 bg-background/35 p-3">
+        <label className="flex cursor-pointer items-center justify-between gap-3">
+          <span className="flex min-w-0 items-center gap-2">
+            <Bell className="h-4 w-4 shrink-0 text-sky-400" />
+            <span className="text-[13px] font-medium text-foreground">
+              邮件提醒
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-border accent-sky-500"
+            {...register("email_notifications_enabled")}
+          />
+        </label>
+
+        {emailNotificationsEnabled && (
+          <div className="mt-3 space-y-2">
+            <Label htmlFor="notify_days_before" className={labelCls}>
+              提前天数
+            </Label>
+            <Input
+              id="notify_days_before"
+              type="number"
+              min="0"
+              max={maxNotifyDays ?? 366}
+              step="1"
+              inputMode="numeric"
+              className={inputCls}
+              {...register("notify_days_before")}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {maxNotifyDays === null
+                ? "选择下次扣费日期后会按账期限制最大天数"
+                : `当前账期最多可提前 ${maxNotifyDays} 天提醒`}
+            </p>
+            {errors.notify_days_before && (
+              <p className={errorCls}>{errors.notify_days_before.message}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {serverError && (

@@ -23,6 +23,9 @@ export interface Subscription {
   category: string;
   start_date: string;
   next_billing_date: string;
+  email_notifications_enabled: boolean;
+  notify_days_before: number;
+  last_notification_sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -104,4 +107,3 @@ export function getCategoryBreakdown(subs: Subscription[]) {
     color: categoryColors[name as Category] || "#888",
   }));
 }
-
