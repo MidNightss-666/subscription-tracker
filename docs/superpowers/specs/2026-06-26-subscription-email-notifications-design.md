@@ -25,7 +25,12 @@ The value means:
 - `1`: send one day before.
 - `7`: send seven days before.
 
-Validation will require a whole number from `0` to `365` when reminders are enabled. When reminders are disabled, the stored lead time may remain set for later reuse, but no reminder will be sent.
+Validation will require a whole number that stays inside the current billing period when reminders are enabled. The maximum is dynamic:
+
+- For a monthly subscription, it must not exceed the actual number of days in the current monthly period.
+- For a yearly subscription, it must not exceed the actual number of days in the current yearly period.
+
+The implementation should calculate the current period from `billing_cycle` and `next_billing_date`, then reject values greater than that period length. This avoids setting a reminder that reaches back past the current renewal period and effectively targets a previous or next renewal node instead of the upcoming billing date. When reminders are disabled, the stored lead time may remain set for later reuse, but no reminder will be sent.
 
 The subscription list will show a compact reminder status so users can see which subscriptions have reminders enabled without opening the edit dialog.
 
@@ -39,9 +44,25 @@ Add a Supabase migration with these columns on `subscriptions`:
 
 Add a check constraint:
 
-- `notify_days_before >= 0 and notify_days_before <= 365`
+- `notify_days_before >= 0 and notify_days_before <= 366`
+
+The database constraint provides an absolute safety limit for yearly leap-year periods. The app and server reminder logic must enforce the stricter billing-cycle-specific maximum before insert, update, or send.
 
 The existing RLS policies still apply because reminder settings live on each user's subscription rows. The scheduled sender will need privileged access through a service role key or a Supabase Edge Function environment where it can query across users.
+
+## Reminder Lead-Time Validation
+
+Create one shared helper for reminder lead-time rules so the form and server route use the same behavior:
+
+- `getBillingPeriodDays(nextBillingDate, billingCycle)` returns the actual day length of the current period.
+- `validateNotifyDaysBefore(value, nextBillingDate, billingCycle)` accepts integers from `0` through that period length.
+
+For monthly subscriptions, the helper should subtract one month from `next_billing_date` to find the current period start and compare calendar dates. Examples:
+
+- `next_billing_date = 2026-03-01`, monthly period start is `2026-02-01`, maximum is `28`.
+- `next_billing_date = 2026-05-15`, monthly period start is `2026-04-15`, maximum is `30`.
+
+For yearly subscriptions, subtract one year from `next_billing_date`. Leap-year periods can be `366` days, so the absolute database cap is `366`.
 
 ## Reminder Selection
 
@@ -71,6 +92,17 @@ Required environment variables:
 - Supabase service credentials only if the sender runs in a Next Route Handler instead of a Supabase Edge Function.
 
 If Resend is not configured, the sender returns a clear configuration error and sends no email. The UI can still save reminder preferences.
+
+Example local variables, with fake values:
+
+```bash
+RESEND_API_KEY=re_123456789_fake_example
+REMINDER_EMAIL_FROM=SubTrack <notifications@example.com>
+SUBSCRIPTION_REMINDER_CRON_SECRET=replace-with-a-long-random-secret
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is only needed for a Next.js Route Handler that queries due reminders across users. If the scheduled sender runs entirely as a Supabase Edge Function, store the equivalent service credential in Supabase function secrets instead of the Next.js app environment.
 
 ## Triggering Strategy
 
@@ -112,6 +144,7 @@ The immediate change should:
 Use TDD for behavior changes:
 
 - Validation accepts reminder fields and rejects invalid lead days.
+- Validation rejects reminder lead days that exceed the actual monthly or yearly period length.
 - Due-reminder selection includes due subscriptions and excludes disabled, future, and already-sent subscriptions.
 - The route rejects missing or invalid cron secrets.
 - The email provider reports missing configuration without sending.
