@@ -128,10 +128,11 @@ Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/l
 
 The app can be deployed to any platform that supports Next.js App Router, such as Vercel or Netlify.
 
-1. Set the Supabase, Resend, sender, and cron-secret environment variables in your hosting provider's dashboard.
+1. Set the Supabase, Resend, sender, `SUBSCRIPTION_REMINDER_CRON_SECRET`, `FIXER_API_KEY`, and `EXCHANGE_RATE_CRON_SECRET` environment variables in your hosting provider's dashboard.
 2. Ensure the Supabase database migration has been applied.
 3. Configure the Supabase scheduled job to call the deployed reminder endpoint once per day.
-4. Deploy. No additional build configuration is needed.
+4. Configure a daily scheduled job or hosting cron to send `POST /api/exchange-rates/sync` with `Authorization: Bearer <EXCHANGE_RATE_CRON_SECRET>`.
+5. Deploy. No additional build configuration is needed.
 
 ```bash
 npm run build
