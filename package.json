@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --loader ./test/ts-alias-loader.mjs test/exchange-rates.test.ts && node --loader ./test/ts-alias-loader.mjs test/subscription-stats.test.ts && node --loader ./test/ts-alias-loader.mjs test/exchange-rate-runner.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminders.test.ts && node --loader ./test/ts-alias-loader.mjs test/validation.test.ts && node --loader ./test/ts-alias-loader.mjs test/email-reminder.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminder-runner.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminder-route.test.ts"
+    "test": "node --loader ./test/ts-alias-loader.mjs test/exchange-rates.test.ts && node --loader ./test/ts-alias-loader.mjs test/subscription-stats.test.ts && node --loader ./test/ts-alias-loader.mjs test/exchange-rate-runner.test.ts && node --loader ./test/ts-alias-loader.mjs test/exchange-rate-route.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminders.test.ts && node --loader ./test/ts-alias-loader.mjs test/validation.test.ts && node --loader ./test/ts-alias-loader.mjs test/email-reminder.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminder-runner.test.ts && node --loader ./test/ts-alias-loader.mjs test/reminder-route.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
