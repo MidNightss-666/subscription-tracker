@@ -15,12 +15,16 @@ create table if not exists exchange_rates (
 create index if not exists idx_exchange_rates_target_currency
   on exchange_rates (target_currency);
 
+drop trigger if exists trg_exchange_rates_updated_at on exchange_rates;
+
 create trigger trg_exchange_rates_updated_at
   before update on exchange_rates
   for each row
   execute function set_updated_at();
 
 alter table exchange_rates enable row level security;
+
+drop policy if exists "Authenticated users can read exchange rates" on exchange_rates;
 
 create policy "Authenticated users can read exchange rates"
   on exchange_rates for select
