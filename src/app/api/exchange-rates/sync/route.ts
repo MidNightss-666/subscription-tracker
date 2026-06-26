@@ -65,7 +65,7 @@ export async function handleExchangeRateSyncRequest(
 
   try {
     const result = await (deps?.runJob ?? runDefaultJob)();
-    return Response.json(result);
+    return Response.json({ fetched: result.fetched, stored: result.stored });
   } catch {
     return Response.json(
       { error: "Exchange rate sync failed" },

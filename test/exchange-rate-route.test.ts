@@ -52,6 +52,26 @@ describe("exchange-rate sync route", () => {
     assert.deepEqual(await response.json(), { fetched: 5, stored: 5 });
   });
 
+  it("only returns sync aggregate fields from the job result", async () => {
+    const response = await handleExchangeRateSyncRequest(
+      new Request("https://example.com/api/exchange-rates/sync", {
+        method: "POST",
+        headers: { Authorization: "Bearer secret" },
+      }),
+      {
+        env: { EXCHANGE_RATE_CRON_SECRET: "secret" },
+        runJob: async () => ({
+          fetched: 5,
+          stored: 5,
+          providerDebug: "do not expose",
+        }),
+      }
+    );
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { fetched: 5, stored: 5 });
+  });
+
   it("returns a generic error when the sync job fails", async () => {
     const response = await handleExchangeRateSyncRequest(
       new Request("https://example.com/api/exchange-rates/sync", {
