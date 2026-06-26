@@ -1,6 +1,13 @@
 import { pathToFileURL } from "node:url";
 
 export async function resolve(specifier, context, nextResolve) {
+  if (specifier === "server-only") {
+    return {
+      url: "data:text/javascript,export {};",
+      shortCircuit: true,
+    };
+  }
+
   if (specifier.startsWith("@/")) {
     const resolved = pathToFileURL(
       `${process.cwd()}/src/${specifier.slice(2)}`

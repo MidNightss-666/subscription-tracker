@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   SUPPORTED_CURRENCIES,
   normalizeFixerRatesToCny,
