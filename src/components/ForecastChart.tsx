@@ -22,16 +22,22 @@ interface TooltipProps {
   active?: boolean;
   label?: string;
   payload?: Array<{ value: number }>;
+  reportingCurrency: string;
 }
 
-function CustomTooltip({ active, payload, label }: TooltipProps) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  reportingCurrency,
+}: TooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
     <div className="rounded-lg border border-border/70 bg-popover px-3 py-2 text-popover-foreground shadow-xl">
       <div className="mb-1 text-[12px] text-muted-foreground">{label}</div>
       <span className="tabular-nums text-[14px] font-semibold text-foreground">
-        {formatMoney(Number(payload[0].value))}
+        {formatMoney(Number(payload[0].value), reportingCurrency)}
       </span>
     </div>
   );
@@ -40,7 +46,8 @@ function CustomTooltip({ active, payload, label }: TooltipProps) {
 const BAR_GRADIENT_ID = "forecast-gradient";
 
 export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
-  const { monthlyForecast: data } = useSubscriptionStats(subscriptions);
+  const { monthlyForecast: data, reportingCurrency } =
+    useSubscriptionStats(subscriptions);
   const hasData = data.some((item) => item.total > 0);
   const maxVal = Math.max(...data.map((item) => item.total), 0);
 
@@ -90,10 +97,15 @@ export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "#52525b", fontSize: 11 }}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) =>
+                  formatMoney(Number(value), reportingCurrency).replace(
+                    ".00",
+                    ""
+                  )
+                }
               />
               <Tooltip
-                content={<CustomTooltip />}
+                content={<CustomTooltip reportingCurrency={reportingCurrency} />}
                 cursor={{ fill: "rgba(255,255,255,0.03)" }}
               />
               <Bar
