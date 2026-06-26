@@ -10,6 +10,13 @@ import {
   Tv,
   type LucideIcon,
 } from "lucide-react";
+import {
+  REPORTING_CURRENCY,
+  convertMoney,
+  getMissingRateCurrencies,
+  type ConvertedMoney,
+  type ExchangeRateMap,
+} from "@/lib/exchange-rates";
 
 export type BillingCycle = "monthly" | "yearly";
 
@@ -78,26 +85,36 @@ export function getCurrencySymbol(code: string) {
   return currencySymbols[code] ?? `${code} `;
 }
 
-export function formatMoney(value: number, currency = "USD") {
+export function formatMoney(value: number, currency = REPORTING_CURRENCY) {
   return `${getCurrencySymbol(currency)}${value.toFixed(2)}`;
 }
 
-export function getMonthlyAmount(sub: Subscription): number {
-  return sub.billing_cycle === "yearly"
-    ? Number((sub.price / 12).toFixed(2))
-    : sub.price;
+export function getMonthlyAmount(
+  sub: Subscription,
+  rates: ExchangeRateMap = {}
+): ConvertedMoney {
+  const monthly =
+    sub.billing_cycle === "yearly"
+      ? Number((sub.price / 12).toFixed(2))
+      : sub.price;
+  const converted = convertMoney(monthly, sub.currency, rates);
+
+  return {
+    amount: Number(converted.amount.toFixed(2)),
+    missingRate: converted.missingRate,
+  };
 }
 
-export function getTotalMonthly(subs: Subscription[]): number {
+export function getTotalMonthly(subs: Subscription[], rates: ExchangeRateMap = {}) {
   return Number(
-    subs.reduce((sum, sub) => sum + getMonthlyAmount(sub), 0).toFixed(2)
+    subs.reduce((sum, sub) => sum + getMonthlyAmount(sub, rates).amount, 0).toFixed(2)
   );
 }
 
-export function getCategoryBreakdown(subs: Subscription[]) {
+export function getCategoryBreakdown(subs: Subscription[], rates: ExchangeRateMap = {}) {
   const map = new Map<string, number>();
   for (const sub of subs) {
-    const monthly = getMonthlyAmount(sub);
+    const monthly = getMonthlyAmount(sub, rates).amount;
     map.set(sub.category, (map.get(sub.category) || 0) + monthly);
   }
 
@@ -106,4 +123,14 @@ export function getCategoryBreakdown(subs: Subscription[]) {
     value: Number(value.toFixed(2)),
     color: categoryColors[name as Category] || "#888",
   }));
+}
+
+export function getMissingSubscriptionRateCurrencies(
+  subs: Subscription[],
+  rates: ExchangeRateMap = {}
+) {
+  return getMissingRateCurrencies(
+    subs.map((sub) => sub.currency),
+    rates
+  );
 }

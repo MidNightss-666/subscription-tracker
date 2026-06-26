@@ -1,9 +1,15 @@
 import { useMemo } from "react";
 import {
   getCategoryBreakdown,
+  getMissingSubscriptionRateCurrencies,
   getMonthlyAmount,
   type Subscription,
 } from "@/lib/subscriptions";
+import {
+  REPORTING_CURRENCY,
+  convertMoney,
+  type ExchangeRateMap,
+} from "@/lib/exchange-rates";
 
 export interface CategoryData {
   name: string;
@@ -18,6 +24,7 @@ export interface ForecastData {
 }
 
 export interface SubscriptionStats {
+  reportingCurrency: typeof REPORTING_CURRENCY;
   monthlyTotal: number;
   yearlyTotal: number;
   currentMonthTotal: number;
@@ -25,6 +32,7 @@ export interface SubscriptionStats {
   growthRate: number;
   categoryBreakdown: CategoryData[];
   monthlyForecast: ForecastData[];
+  missingRateCurrencies: string[];
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -88,7 +96,8 @@ function getFirstRecurringDateOnOrAfter(
 
 function getScheduledTotalForMonth(
   subscriptions: Subscription[],
-  monthStart: Date
+  monthStart: Date,
+  rates: ExchangeRateMap = {}
 ) {
   const monthEnd = endOfMonth(monthStart);
 
@@ -103,14 +112,20 @@ function getScheduledTotalForMonth(
           sub.billing_cycle,
           monthStart
         );
-        return firstBilling <= monthEnd ? sum + sub.price : sum;
+        if (firstBilling > monthEnd) return sum;
+
+        return sum + convertMoney(sub.price, sub.currency, rates).amount;
       }, 0)
       .toFixed(2)
   );
 }
 
-function getForecast(subscriptions: Subscription[], months = 6): ForecastData[] {
-  const today = new Date();
+function getForecast(
+  subscriptions: Subscription[],
+  months = 6,
+  rates: ExchangeRateMap = {},
+  today = new Date()
+): ForecastData[] {
   const rangeStart = startOfMonth(today);
   const monthStarts = Array.from(
     { length: months },
@@ -124,7 +139,11 @@ function getForecast(subscriptions: Subscription[], months = 6): ForecastData[] 
 
     while (billingDate <= rangeEnd) {
       const key = monthKey(billingDate);
-      monthTotals.set(key, (monthTotals.get(key) || 0) + sub.price);
+      monthTotals.set(
+        key,
+        (monthTotals.get(key) || 0) +
+          convertMoney(sub.price, sub.currency, rates).amount
+      );
       billingDate = addCycle(billingDate, sub.billing_cycle);
 
       // Defensive guard against invalid dates causing an endless loop.
@@ -145,45 +164,63 @@ function getForecast(subscriptions: Subscription[], months = 6): ForecastData[] 
   });
 }
 
-export function useSubscriptionStats(
-  subscriptions: Subscription[]
+export function calculateSubscriptionStats(
+  subscriptions: Subscription[],
+  options: { rates?: ExchangeRateMap; today?: Date } = {}
 ): SubscriptionStats {
-  return useMemo(() => {
-    const monthlyTotal = Number(
-      subscriptions
-        .reduce((sum, sub) => sum + getMonthlyAmount(sub), 0)
-        .toFixed(2)
-    );
-    const yearlyTotal = Number((monthlyTotal * 12).toFixed(2));
-    const currentMonth = startOfMonth(new Date());
-    const previousMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() - 1,
-      1
-    );
-    const currentMonthTotal = getScheduledTotalForMonth(
-      subscriptions,
-      currentMonth
-    );
-    const previousMonthTotal = getScheduledTotalForMonth(
-      subscriptions,
-      previousMonth
-    );
-    const growthRate =
-      previousMonthTotal > 0
-        ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
-        : currentMonthTotal > 0
-          ? 100
-          : 0;
+  const rates = options.rates ?? {};
+  const today = options.today ?? new Date();
+  const monthlyTotal = Number(
+    subscriptions
+      .reduce((sum, sub) => sum + getMonthlyAmount(sub, rates).amount, 0)
+      .toFixed(2)
+  );
+  const yearlyTotal = Number((monthlyTotal * 12).toFixed(2));
+  const currentMonth = startOfMonth(today);
+  const previousMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth() - 1,
+    1
+  );
+  const currentMonthTotal = getScheduledTotalForMonth(
+    subscriptions,
+    currentMonth,
+    rates
+  );
+  const previousMonthTotal = getScheduledTotalForMonth(
+    subscriptions,
+    previousMonth,
+    rates
+  );
+  const growthRate =
+    previousMonthTotal > 0
+      ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
+      : currentMonthTotal > 0
+        ? 100
+        : 0;
 
-    return {
-      monthlyTotal,
-      yearlyTotal,
-      currentMonthTotal,
-      previousMonthTotal,
-      growthRate: Number(growthRate.toFixed(1)),
-      categoryBreakdown: getCategoryBreakdown(subscriptions),
-      monthlyForecast: getForecast(subscriptions),
-    };
-  }, [subscriptions]);
+  return {
+    reportingCurrency: REPORTING_CURRENCY,
+    monthlyTotal,
+    yearlyTotal,
+    currentMonthTotal,
+    previousMonthTotal,
+    growthRate: Number(growthRate.toFixed(1)),
+    categoryBreakdown: getCategoryBreakdown(subscriptions, rates),
+    monthlyForecast: getForecast(subscriptions, 6, rates, today),
+    missingRateCurrencies: getMissingSubscriptionRateCurrencies(
+      subscriptions,
+      rates
+    ),
+  };
+}
+
+export function useSubscriptionStats(
+  subscriptions: Subscription[],
+  rates: ExchangeRateMap = {}
+): SubscriptionStats {
+  return useMemo(
+    () => calculateSubscriptionStats(subscriptions, { rates }),
+    [subscriptions, rates]
+  );
 }
