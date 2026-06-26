@@ -52,4 +52,45 @@ describe("converted subscription stats", () => {
     assert.equal(stats.yearlyTotal, 924);
     assert.deepEqual(stats.missingRateCurrencies, ["GBP"]);
   });
+
+  it("calculates scheduled month totals from converted CNY charge amounts", () => {
+    const stats = calculateSubscriptionStats([
+      baseSub,
+      {
+        ...baseSub,
+        id: "sub_2",
+        currency: "EUR",
+        price: 5,
+        start_date: "2026-06-15",
+      },
+    ], { rates, today: new Date("2026-06-26T00:00:00") });
+
+    assert.equal(stats.currentMonthTotal, 112);
+    assert.equal(stats.previousMonthTotal, 72);
+  });
+
+  it("calculates monthly forecast totals from converted CNY charge amounts", () => {
+    const stats = calculateSubscriptionStats([
+      baseSub,
+      {
+        ...baseSub,
+        id: "sub_2",
+        currency: "EUR",
+        price: 5,
+        next_billing_date: "2026-08-15",
+      },
+    ], { rates, today: new Date("2026-06-26T00:00:00") });
+
+    assert.deepEqual(
+      stats.monthlyForecast.map((item) => [item.month, item.total]),
+      [
+        ["2026-06", 0],
+        ["2026-07", 72],
+        ["2026-08", 112],
+        ["2026-09", 112],
+        ["2026-10", 112],
+        ["2026-11", 112],
+      ]
+    );
+  });
 });
