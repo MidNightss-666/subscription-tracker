@@ -21,6 +21,10 @@ describe("exchange-rate helpers", () => {
     assert.equal(REPORTING_CURRENCY, "CNY");
   });
 
+  it("includes CNY as a 1:1 exchange rate in the rate map", () => {
+    assert.equal(buildExchangeRateMap(rows).CNY, 1);
+  });
+
   it("converts source amounts into CNY and treats CNY as 1", () => {
     const rates = buildExchangeRateMap(rows);
     assert.equal(convertMoney(10, "USD", rates).amount, 72);
@@ -55,5 +59,27 @@ describe("exchange-rate helpers", () => {
     assert.equal(normalized.find((row) => row.base_currency === "EUR")?.rate, 8);
     assert.equal(normalized.find((row) => row.base_currency === "GBP")?.rate, 9);
     assert.equal(normalized.find((row) => row.base_currency === "JPY")?.rate, 0.045);
+  });
+
+  it("rejects Fixer responses with invalid required rates", () => {
+    assert.throws(
+      () =>
+        normalizeFixerRatesToCny({
+          fetchedAt: "2026-06-26T00:00:00Z",
+          rates: { CNY: 0, USD: 1 },
+          supportedCurrencies: ["USD", "CNY"],
+        }),
+      /missing a valid CNY rate/,
+    );
+
+    assert.throws(
+      () =>
+        normalizeFixerRatesToCny({
+          fetchedAt: "2026-06-26T00:00:00Z",
+          rates: { CNY: 7.2, USD: Number.NaN },
+          supportedCurrencies: ["USD", "CNY"],
+        }),
+      /missing a valid USD rate/,
+    );
   });
 });
