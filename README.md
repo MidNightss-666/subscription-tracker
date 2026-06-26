@@ -52,11 +52,14 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 RESEND_API_KEY=re_123456789_fake_example
 REMINDER_EMAIL_FROM=SubTrack <notifications@example.com>
 SUBSCRIPTION_REMINDER_CRON_SECRET=replace-with-a-long-random-secret
+FIXER_API_KEY=fixer_fake_api_key
+EXCHANGE_RATE_CRON_SECRET=replace-with-a-long-random-secret
 ```
 
 You can find these values in your Supabase dashboard under **Settings > API**.
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported as an alias for the publishable key.
 `SUPABASE_SERVICE_ROLE_KEY` is required only on the server for the scheduled reminder sender. Never expose it to browser code.
+`FIXER_API_KEY` and `EXCHANGE_RATE_CRON_SECRET` are server-only values. Do not prefix them with `NEXT_PUBLIC_`.
 
 Create the Resend API key in Resend, and use a verified sender domain or sender address for `REMINDER_EMAIL_FROM`.
 
@@ -74,9 +77,11 @@ Run the SQL migration in your Supabase SQL Editor:
 ```bash
 supabase/001_create_subscriptions.sql
 supabase/002_add_email_notifications.sql
+supabase/003_create_exchange_rates.sql
 ```
 
 This creates the `subscriptions` table, indexes, RLS policies, helper functions, and email reminder columns.
+The exchange-rate migration creates a shared `exchange_rates` table that authenticated users can read and the scheduled service-role job can update.
 
 ### 4. Configure scheduled reminders
 
@@ -93,6 +98,23 @@ Authorization: Bearer <SUBSCRIPTION_REMINDER_CRON_SECRET>
 ```
 
 The endpoint returns only aggregate counts (`checked`, `due`, `sent`, `failed`) and does not expose subscription details.
+
+### Configure daily exchange-rate sync
+
+Create a Supabase scheduled job or hosting cron that sends a daily POST request to:
+
+```text
+https://your-app.example.com/api/exchange-rates/sync
+```
+
+Include this header:
+
+```text
+Authorization: Bearer <EXCHANGE_RATE_CRON_SECRET>
+```
+
+The endpoint stores normalized conversion rates into CNY and returns only aggregate counts.
+Dashboard statistics are reported in CNY while subscription rows keep their original currency.
 
 ### 5. Run the dev server
 
