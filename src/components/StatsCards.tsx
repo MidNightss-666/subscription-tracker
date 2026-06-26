@@ -1,15 +1,20 @@
 "use client";
 
 import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp } from "lucide-react";
+import type { ExchangeRateMap } from "@/lib/exchange-rates";
 import type { Subscription } from "@/lib/subscriptions";
 import { formatMoney } from "@/lib/subscriptions";
 import { useSubscriptionStats } from "@/hooks/useSubscriptionStats";
 
 interface StatsCardsProps {
   subscriptions?: Subscription[];
+  exchangeRates?: ExchangeRateMap;
 }
 
-export function StatsCards({ subscriptions = [] }: StatsCardsProps) {
+export function StatsCards({
+  subscriptions = [],
+  exchangeRates = { CNY: 1 },
+}: StatsCardsProps) {
   const {
     reportingCurrency,
     monthlyTotal,
@@ -18,7 +23,7 @@ export function StatsCards({ subscriptions = [] }: StatsCardsProps) {
     previousMonthTotal,
     growthRate,
     missingRateCurrencies,
-  } = useSubscriptionStats(subscriptions);
+  } = useSubscriptionStats(subscriptions, exchangeRates);
   const count = subscriptions.length;
   const GrowthIcon = growthRate >= 0 ? ArrowUpRight : ArrowDownRight;
 

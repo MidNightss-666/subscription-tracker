@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Activity, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AddSubscriptionDialog } from "@/components/AddSubscriptionDialog";
@@ -11,6 +11,11 @@ import { ForecastChart } from "@/components/ForecastChart";
 import { StatsCards } from "@/components/StatsCards";
 import { SubscriptionList } from "@/components/SubscriptionList";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  buildExchangeRateMap,
+  type ExchangeRateMap,
+  type ExchangeRateRow,
+} from "@/lib/exchange-rates";
 import { createBrowserClient } from "@/lib/supabase/client";
 import type { Subscription } from "@/lib/subscriptions";
 
@@ -20,6 +25,35 @@ export default function Home() {
   const [editSub, setEditSub] = useState<Subscription | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRateMap>({
+    CNY: 1,
+  });
+
+  const loadExchangeRates = useCallback(async () => {
+    const supabase = createBrowserClient();
+    const { data } = await supabase
+      .from("exchange_rates")
+      .select("base_currency,target_currency,rate,fetched_at")
+      .eq("target_currency", "CNY");
+
+    return buildExchangeRateMap((data ?? []) as ExchangeRateRow[]);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshExchangeRates() {
+      const nextExchangeRates = await loadExchangeRates();
+      if (!cancelled) {
+        setExchangeRates(nextExchangeRates);
+      }
+    }
+
+    refreshExchangeRates();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadExchangeRates, refreshTrigger]);
 
   const handleSuccess = useCallback(() => {
     setRefreshTrigger((key) => key + 1);
@@ -74,7 +108,10 @@ export default function Home() {
           </p>
         </div>
 
-        <StatsCards subscriptions={subscriptions} />
+        <StatsCards
+          subscriptions={subscriptions}
+          exchangeRates={exchangeRates}
+        />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -85,8 +122,14 @@ export default function Home() {
             />
           </div>
           <div className="space-y-6">
-            <CategoryChart subscriptions={subscriptions} />
-            <ForecastChart subscriptions={subscriptions} />
+            <CategoryChart
+              subscriptions={subscriptions}
+              exchangeRates={exchangeRates}
+            />
+            <ForecastChart
+              subscriptions={subscriptions}
+              exchangeRates={exchangeRates}
+            />
           </div>
         </div>
       </main>

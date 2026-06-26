@@ -11,11 +11,13 @@ import {
   YAxis,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
+import type { ExchangeRateMap } from "@/lib/exchange-rates";
 import { formatMoney, type Subscription } from "@/lib/subscriptions";
 import { useSubscriptionStats } from "@/hooks/useSubscriptionStats";
 
 interface ForecastChartProps {
   subscriptions?: Subscription[];
+  exchangeRates?: ExchangeRateMap;
 }
 
 interface TooltipProps {
@@ -45,9 +47,12 @@ function CustomTooltip({
 
 const BAR_GRADIENT_ID = "forecast-gradient";
 
-export function ForecastChart({ subscriptions = [] }: ForecastChartProps) {
+export function ForecastChart({
+  subscriptions = [],
+  exchangeRates = { CNY: 1 },
+}: ForecastChartProps) {
   const { monthlyForecast: data, reportingCurrency } =
-    useSubscriptionStats(subscriptions);
+    useSubscriptionStats(subscriptions, exchangeRates);
   const hasData = data.some((item) => item.total > 0);
   const maxVal = Math.max(...data.map((item) => item.total), 0);
 

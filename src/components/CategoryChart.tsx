@@ -1,11 +1,13 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import type { ExchangeRateMap } from "@/lib/exchange-rates";
 import { formatMoney, type Subscription } from "@/lib/subscriptions";
 import { useSubscriptionStats } from "@/hooks/useSubscriptionStats";
 
 interface CategoryChartProps {
   subscriptions?: Subscription[];
+  exchangeRates?: ExchangeRateMap;
 }
 
 interface TooltipProps {
@@ -15,9 +17,10 @@ interface TooltipProps {
     value: number;
     payload: { color: string };
   }>;
+  reportingCurrency: string;
 }
 
-function CustomTooltip({ active, payload }: TooltipProps) {
+function CustomTooltip({ active, payload, reportingCurrency }: TooltipProps) {
   if (!active || !payload?.length) return null;
   const { name, value, payload: raw } = payload[0];
 
@@ -31,15 +34,21 @@ function CustomTooltip({ active, payload }: TooltipProps) {
         <span className="text-[13px] text-muted-foreground">{name}</span>
       </div>
       <span className="tabular-nums text-[14px] font-semibold text-foreground">
-        {formatMoney(Number(value))}
+        {formatMoney(Number(value), reportingCurrency)}
       </span>
     </div>
   );
 }
 
-export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
-  const { categoryBreakdown: data, monthlyTotal: total } =
-    useSubscriptionStats(subscriptions);
+export function CategoryChart({
+  subscriptions = [],
+  exchangeRates = { CNY: 1 },
+}: CategoryChartProps) {
+  const {
+    categoryBreakdown: data,
+    monthlyTotal: total,
+    reportingCurrency,
+  } = useSubscriptionStats(subscriptions, exchangeRates);
 
   if (data.length === 0) {
     return (
@@ -83,7 +92,7 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
                 ))}
               </Pie>
               <Tooltip
-                content={<CustomTooltip />}
+                content={<CustomTooltip reportingCurrency={reportingCurrency} />}
                 wrapperStyle={{ zIndex: 50, pointerEvents: "none" }}
               />
             </PieChart>
@@ -93,7 +102,7 @@ export function CategoryChart({ subscriptions = [] }: CategoryChartProps) {
               月均支出
             </span>
             <span className="text-xl font-semibold text-foreground tabular-nums">
-              {formatMoney(total).replace(".00", "")}
+              {formatMoney(total, reportingCurrency).replace(".00", "")}
             </span>
           </div>
         </div>
